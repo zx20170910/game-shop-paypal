@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.storage.mapper.FulfillmentAttachmentMapper">
+    <resultMap id="attachmentMap" type="com.unicorn.gameshop.storage.model.FulfillmentAttachment">
+        <id property="id" column="id"/>
+        <result property="fulfillmentId" column="fulfillment_id"/>
+        <result property="objectKey" column="object_key"/>
+        <result property="fileName" column="file_name"/>
+        <result property="contentType" column="content_type"/>
+        <result property="sizeBytes" column="size_bytes"/>
+        <result property="status" column="status"/>
+        <result property="verifiedAt" column="verified_at"/>
+        <result property="verifiedBy" column="verified_by"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.unicorn.gameshop.storage.model.FulfillmentAttachment">
+        INSERT INTO fulfillment_attachments (id, fulfillment_id, object_key, file_name, content_type, size_bytes,
+                                             status, verified_at, verified_by, created_by, created_at)
+        VALUES (#{id}, #{fulfillmentId}, #{objectKey}, #{fileName}, #{contentType}, #{sizeBytes},
+                #{status}, #{verifiedAt}, #{verifiedBy}, #{createdBy}, #{createdAt})
+    </insert>
+
+    <select id="findById" resultMap="attachmentMap">
+        SELECT * FROM fulfillment_attachments WHERE id = #{id}
+    </select>
+
+    <update id="confirmUploaded">
+        UPDATE fulfillment_attachments
+        SET status = 'CONFIRMED', verified_at = #{verifiedAt}, verified_by = #{verifiedBy}
+        WHERE id = #{id} AND fulfillment_id = #{fulfillmentId} AND status = 'PENDING_UPLOAD'
+    </update>
+
+    <select id="listByFulfillmentId" resultMap="attachmentMap">
+        SELECT * FROM fulfillment_attachments WHERE fulfillment_id = #{fulfillmentId} ORDER BY created_at DESC
+    </select>
+
+    <update id="invalidateConfirmed">
+        UPDATE fulfillment_attachments
+        SET status = 'INVALIDATED'
+        WHERE fulfillment_id = #{fulfillmentId} AND status = 'CONFIRMED'
+    </update>
+</mapper>

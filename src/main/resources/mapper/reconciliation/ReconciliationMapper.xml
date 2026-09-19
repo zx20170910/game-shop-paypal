@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.reconciliation.mapper.ReconciliationMapper">
+    <resultMap id="reconciliationAmountMap" type="com.unicorn.gameshop.reconciliation.dto.ReconciliationAmount">
+        <result property="currency" column="currency"/>
+        <result property="amountMinor" column="amount_minor"/>
+    </resultMap>
+
+    <select id="countCapturedWithoutFulfillment" resultType="long">
+        SELECT COUNT(1)
+        FROM orders o
+        LEFT JOIN fulfillments f ON f.order_id = o.id
+        WHERE o.payment_status IN ('CAPTURED', 'PARTIALLY_REFUNDED', 'REFUNDED', 'DISPUTED')
+          AND f.id IS NULL
+    </select>
+
+    <select id="countFulfilledWithoutCapturedPayment" resultType="long">
+        SELECT COUNT(1)
+        FROM orders
+        WHERE fulfillment_status = 'FULFILLED'
+          AND payment_status NOT IN ('CAPTURED', 'PARTIALLY_REFUNDED', 'REFUNDED', 'DISPUTED')
+    </select>
+
+    <select id="countPaymentCaptureWithoutPaidOrder" resultType="long">
+        SELECT COUNT(1)
+        FROM payment_attempts p
+        JOIN orders o ON o.id = p.order_id
+        WHERE p.status = 'CAPTURED'
+          AND o.order_status NOT IN ('PAID', 'FULFILLED')
+    </select>
+
+    <select id="countPendingWebhookEvents" resultType="long">
+        SELECT COUNT(1) FROM webhook_events WHERE process_status IN ('RECEIVED', 'RETRYABLE')
+    </select>
+
+    <select id="sumCapturedWithoutFulfillmentAmountMinor" resultMap="reconciliationAmountMap">
+        SELECT o.currency, COALESCE(SUM(o.amount_minor), 0) AS amount_minor
+        FROM orders o
+        LEFT JOIN fulfillments f ON f.order_id = o.id
+        WHERE o.payment_status IN ('CAPTURED', 'PARTIALLY_REFUNDED', 'REFUNDED', 'DISPUTED')
+          AND f.id IS NULL
+        GROUP BY o.currency
+    </select>
+
+    <select id="sumFulfilledWithoutCapturedPaymentAmountMinor" resultMap="reconciliationAmountMap">
+        SELECT currency, COALESCE(SUM(amount_minor), 0) AS amount_minor FROM orders
+        WHERE fulfillment_status = 'FULFILLED'
+          AND payment_status NOT IN ('CAPTURED', 'PARTIALLY_REFUNDED', 'REFUNDED', 'DISPUTED')
+        GROUP BY currency
+    </select>
+
+    <select id="sumRefundedAmountMinor" resultMap="reconciliationAmountMap">
+        SELECT currency, COALESCE(SUM(amount_minor), 0) AS amount_minor FROM refunds
+        WHERE status IN ('COMPLETED', 'PARTIALLY_REFUNDED', 'REFUNDED')
+        GROUP BY currency
+    </select>
+</mapper>

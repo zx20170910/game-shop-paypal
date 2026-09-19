@@ -1,0 +1,10 @@
+target/
+.idea/
+*.iml
+.DS_Store
+.env
+web/node_modules/
+web/dist/
+.local/
+.playwright-cli/
+output/

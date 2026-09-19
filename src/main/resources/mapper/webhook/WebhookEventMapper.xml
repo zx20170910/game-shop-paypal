@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.webhook.mapper.WebhookEventMapper">
+    <resultMap id="webhookEventMap" type="com.unicorn.gameshop.webhook.model.WebhookEvent">
+        <id property="id" column="id"/>
+        <result property="provider" column="provider"/>
+        <result property="providerEventId" column="provider_event_id"/>
+        <result property="eventType" column="event_type"/>
+        <result property="rawBody" column="raw_body"/>
+        <result property="signatureVerified" column="signature_verified"/>
+        <result property="processStatus" column="process_status"/>
+        <result property="headersJson" column="headers_json"/>
+        <result property="receivedAt" column="received_at"/>
+        <result property="processedAt" column="processed_at"/>
+    </resultMap>
+
+    <select id="countByProviderEventId" resultType="int">
+        SELECT COUNT(1) FROM webhook_events
+        WHERE provider = #{provider} AND provider_event_id = #{providerEventId}
+    </select>
+
+    <select id="findByProviderEventId" resultMap="webhookEventMap">
+        SELECT * FROM webhook_events
+        WHERE provider = #{provider} AND provider_event_id = #{providerEventId}
+    </select>
+
+    <select id="listRecent" resultMap="webhookEventMap">
+        SELECT * FROM webhook_events ORDER BY received_at DESC LIMIT #{limit}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO webhook_events (id, provider, provider_event_id, event_type, raw_body, signature_verified,
+                                    process_status, headers_json, retry_count, received_at)
+        VALUES (#{id}, #{provider}, #{providerEventId}, #{eventType}, #{rawBody}, #{signatureVerified},
+                #{processStatus}, #{headersJson}, 0, #{receivedAt})
+    </insert>
+
+    <update id="markProcessed">
+        UPDATE webhook_events SET process_status = 'PROCESSED', processed_at = #{processedAt}
+        WHERE provider = #{provider} AND provider_event_id = #{providerEventId}
+    </update>
+</mapper>

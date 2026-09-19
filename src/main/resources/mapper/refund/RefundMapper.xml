@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.refund.mapper.RefundMapper">
+    <select id="sumSuccessfulRefunds" resultType="long">
+        SELECT COALESCE(SUM(amount_minor), 0) FROM refunds
+        WHERE order_id = #{orderId} AND status IN ('COMPLETED', 'PENDING')
+    </select>
+
+    <resultMap id="refundMap" type="com.unicorn.gameshop.refund.mapper.RefundMapper$RefundRecord">
+        <id property="id" column="id"/>
+        <result property="providerRefundId" column="provider_refund_id"/>
+        <result property="amountMinor" column="amount_minor"/>
+        <result property="currency" column="currency"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="findByIdempotencyKey" resultMap="refundMap">
+        SELECT id, provider_refund_id, amount_minor, currency, status
+        FROM refunds WHERE idempotency_key = #{idempotencyKey}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO refunds (id, order_id, provider_refund_id, amount_minor, currency, status, reason,
+                             idempotency_key, created_at, updated_at)
+        VALUES (#{id}, #{orderId}, #{providerRefundId}, #{amountMinor}, #{currency}, #{status}, #{reason},
+                #{idempotencyKey}, #{createdAt}, #{updatedAt})
+    </insert>
+</mapper>

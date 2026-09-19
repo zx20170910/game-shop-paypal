@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.admin.mapper.AdminUserMapper">
+    <resultMap id="adminUserMap" type="com.unicorn.gameshop.admin.model.AdminUser">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="status" column="status"/>
+        <collection property="roles" ofType="string">
+            <result column="role_code"/>
+        </collection>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="adminUserMap">
+        SELECT u.id, u.username, u.password_hash, u.status, r.role_code
+        FROM admin_users u
+        LEFT JOIN admin_user_roles r ON r.admin_id = u.id
+        WHERE u.username = #{username} AND u.status = 'ACTIVE'
+    </select>
+</mapper>

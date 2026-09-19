@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.order.mapper.CheckoutIdempotencyMapper">
+    <resultMap id="idempotencyMap" type="com.unicorn.gameshop.order.mapper.CheckoutIdempotencyMapper$CheckoutIdempotencyRecord">
+        <id property="idempotencyKey" column="idempotency_key"/>
+        <result property="requestFingerprint" column="request_fingerprint"/>
+        <result property="orderId" column="order_id"/>
+    </resultMap>
+
+    <select id="findByKey" resultMap="idempotencyMap">
+        SELECT idempotency_key, request_fingerprint, order_id
+        FROM checkout_idempotency_keys WHERE idempotency_key = #{idempotencyKey}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO checkout_idempotency_keys (idempotency_key, request_fingerprint, order_id, created_at)
+        VALUES (#{idempotencyKey}, #{requestFingerprint}, #{orderId}, #{createdAt})
+    </insert>
+</mapper>

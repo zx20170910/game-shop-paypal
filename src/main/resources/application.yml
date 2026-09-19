@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: game-shop
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/game_shop?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC}
+    username: ${DB_USERNAME:game_shop}
+    password: ${DB_PASSWORD:change-me}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-handlers-package: com.unicorn.gameshop
+  configuration:
+    map-underscore-to-camel-case: true
+
+server:
+  error:
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+paypal:
+  env: ${PAYPAL_ENV:sandbox}
+  base-url: ${PAYPAL_BASE_URL:https://api-m.sandbox.paypal.com}
+  client-id: ${PAYPAL_CLIENT_ID:}
+  client-secret: ${PAYPAL_CLIENT_SECRET:}
+  webhook-id: ${PAYPAL_WEBHOOK_ID:}
+  token-cache-seconds: ${PAYPAL_TOKEN_CACHE_SECONDS:300}
+
+app:
+  order-access-token-secret: ${ORDER_ACCESS_TOKEN_SECRET:change-me-in-production}
+  order-expiration-minutes: ${ORDER_EXPIRATION_MINUTES:30}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-jwt-secret-at-least-32-bytes}
+  issuer: ${JWT_ISSUER:game-shop}
+  expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+
+outbox:
+  publisher: ${OUTBOX_PUBLISHER:UNCONFIGURED}
+
+oss:
+  provider: ${OSS_PROVIDER:UNCONFIGURED}
+  bucket: ${OSS_BUCKET:}
+  endpoint: ${OSS_ENDPOINT:}
+
+risk:
+  high-amount-minor: ${RISK_HIGH_AMOUNT_MINOR:10000}
+  repeat-window-minutes: ${RISK_REPEAT_WINDOW_MINUTES:60}
+  repeat-limit: ${RISK_REPEAT_LIMIT:3}

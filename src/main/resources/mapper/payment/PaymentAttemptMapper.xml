@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.payment.mapper.PaymentAttemptMapper">
+    <resultMap id="paymentMap" type="com.unicorn.gameshop.payment.model.PaymentAttempt">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="provider" column="provider"/>
+        <result property="providerOrderId" column="provider_order_id"/>
+        <result property="providerCaptureId" column="provider_capture_id"/>
+        <result property="amountMinor" column="amount_minor"/>
+        <result property="currency" column="currency"/>
+        <result property="status" column="status"/>
+        <result property="createIdempotencyKey" column="create_idempotency_key"/>
+        <result property="captureIdempotencyKey" column="capture_idempotency_key"/>
+        <result property="rawResponse" column="raw_response"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.unicorn.gameshop.payment.model.PaymentAttempt">
+        INSERT INTO payment_attempts (id, order_id, provider, provider_order_id, provider_capture_id, amount_minor,
+                                     currency, status, create_idempotency_key, capture_idempotency_key, raw_response,
+                                     created_at, updated_at)
+        VALUES (#{id}, #{orderId}, #{provider}, #{providerOrderId}, #{providerCaptureId}, #{amountMinor}, #{currency},
+                #{status}, #{createIdempotencyKey}, #{captureIdempotencyKey}, #{rawResponse}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" resultMap="paymentMap">SELECT * FROM payment_attempts WHERE id = #{id}</select>
+    <select id="findByProviderOrderId" resultMap="paymentMap">
+        SELECT * FROM payment_attempts WHERE provider = #{provider} AND provider_order_id = #{providerOrderId}
+    </select>
+    <select id="findByOrderId" resultMap="paymentMap">SELECT * FROM payment_attempts WHERE order_id = #{orderId} ORDER BY created_at DESC LIMIT 1</select>
+    <select id="findByCreateIdempotencyKey" resultMap="paymentMap">
+        SELECT * FROM payment_attempts WHERE create_idempotency_key = #{createIdempotencyKey}
+    </select>
+    <select id="findByProviderCaptureId" resultMap="paymentMap">
+        SELECT * FROM payment_attempts WHERE provider = #{provider} AND provider_capture_id = #{providerCaptureId}
+    </select>
+
+    <update id="updateProviderOrder">
+        UPDATE payment_attempts
+        SET provider_order_id = #{providerOrderId}, status = #{status}, raw_response = #{rawResponse}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateCapture">
+        UPDATE payment_attempts
+        SET provider_capture_id = #{providerCaptureId}, status = #{status},
+            capture_idempotency_key = #{captureIdempotencyKey}, raw_response = #{rawResponse}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+</mapper>

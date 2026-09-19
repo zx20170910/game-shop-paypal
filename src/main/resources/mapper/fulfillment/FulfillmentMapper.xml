@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.fulfillment.mapper.FulfillmentMapper">
+    <resultMap id="fulfillmentMap" type="com.unicorn.gameshop.fulfillment.model.Fulfillment">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="targetPlayerUid" column="target_player_uid"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="claimedAt" column="claimed_at"/>
+        <result property="proofObjectKey" column="proof_object_key"/>
+        <result property="deliveryNote" column="delivery_note"/>
+        <result property="reviewedAt" column="reviewed_at"/>
+        <result property="status" column="status"/>
+        <result property="attempts" column="attempts"/>
+        <result property="deliveredAt" column="delivered_at"/>
+        <result property="lastError" column="last_error"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.unicorn.gameshop.fulfillment.model.Fulfillment">
+        INSERT INTO fulfillments (id, order_id, target_player_uid, operator_id, claimed_at, proof_object_key,
+                                  delivery_note, reviewed_at, status, attempts, delivered_at, last_error,
+                                  created_at, updated_at)
+        VALUES (#{id}, #{orderId}, #{targetPlayerUid}, #{operatorId}, #{claimedAt}, #{proofObjectKey},
+                #{deliveryNote}, #{reviewedAt}, #{status}, #{attempts}, #{deliveredAt}, #{lastError},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" resultMap="fulfillmentMap">SELECT * FROM fulfillments WHERE id = #{id}</select>
+    <select id="findByOrderId" resultMap="fulfillmentMap">SELECT * FROM fulfillments WHERE order_id = #{orderId}</select>
+
+    <select id="list" resultMap="fulfillmentMap">
+        SELECT * FROM fulfillments
+        <where>
+            <if test="status != null">status = #{status}</if>
+        </where>
+        ORDER BY updated_at ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="claim">
+        UPDATE fulfillments
+        SET operator_id = #{operatorId}, claimed_at = #{claimedAt}, status = 'CLAIMED',
+            attempts = attempts + 1, updated_at = #{updatedAt}
+        WHERE id = #{id} AND status = 'MANUAL_PENDING'
+    </update>
+
+    <update id="complete">
+        UPDATE fulfillments
+        SET proof_object_key = #{proofObjectKey}, delivery_note = #{deliveryNote},
+            status = 'AWAITING_REVIEW', updated_at = #{updatedAt}
+        WHERE id = #{id} AND operator_id = #{operatorId} AND status = 'CLAIMED'
+    </update>
+
+    <update id="review">
+        UPDATE fulfillments
+        SET status = #{status}, reviewed_at = #{reviewedAt}, delivered_at = #{deliveredAt}, updated_at = #{updatedAt}
+        WHERE id = #{id} AND status = 'AWAITING_REVIEW'
+    </update>
+
+    <update id="reclaimExpired">
+        UPDATE fulfillments
+        SET operator_id = NULL, claimed_at = NULL, status = 'MANUAL_PENDING', updated_at = #{updatedAt}
+        WHERE status = 'CLAIMED' AND claimed_at &lt; #{cutoff}
+    </update>
+
+    <update id="requeue">
+        UPDATE fulfillments
+        SET operator_id = NULL, claimed_at = NULL, proof_object_key = NULL, delivery_note = NULL,
+            reviewed_at = NULL, delivered_at = NULL, last_error = #{reason}, status = 'MANUAL_PENDING',
+            updated_at = #{updatedAt}
+        WHERE id = #{id} AND status = 'MANUAL_REVIEW'
+    </update>
+</mapper>

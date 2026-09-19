@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unicorn.gameshop.order.mapper.ProductMapper">
+    <resultMap id="productMap" type="com.unicorn.gameshop.order.model.Product">
+        <id property="id" column="id"/>
+        <result property="gameId" column="game_id"/>
+        <result property="sku" column="sku"/>
+        <result property="name" column="name"/>
+        <result property="amountMinor" column="amount_minor"/>
+        <result property="currency" column="currency"/>
+        <result property="platform" column="platform"/>
+        <result property="serverRegion" column="server_region"/>
+        <result property="deliveryType" column="delivery_type"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findAvailableById" resultMap="productMap">
+        SELECT * FROM products WHERE id = #{id} AND status = 'ACTIVE'
+    </select>
+    <select id="findById" resultMap="productMap">SELECT * FROM products WHERE id = #{id}</select>
+    <select id="list" resultMap="productMap">
+        SELECT * FROM products
+        <where>
+            <if test="gameId != null and gameId != ''">game_id = #{gameId}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
+
+    <insert id="insert" parameterType="com.unicorn.gameshop.order.model.Product">
+        INSERT INTO products (id, game_id, sku, name, amount_minor, currency, platform, server_region,
+                              delivery_type, status, created_at, updated_at)
+        VALUES (#{id}, #{gameId}, #{sku}, #{name}, #{amountMinor}, #{currency}, #{platform}, #{serverRegion},
+                #{deliveryType}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update" parameterType="com.unicorn.gameshop.order.model.Product">
+        UPDATE products
+        SET game_id = #{gameId}, sku = #{sku}, name = #{name}, amount_minor = #{amountMinor}, currency = #{currency},
+            platform = #{platform}, server_region = #{serverRegion}, delivery_type = #{deliveryType},
+            status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+</mapper>
