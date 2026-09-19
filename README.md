@@ -442,6 +442,11 @@ npm --prefix web run build
 
 仓库可以通过 GitHub Pages 自动发布 `web/dist` 前端演示，工作流文件为 `.github/workflows/pages.yml`。首次使用时，在 GitHub 仓库的 `Settings → Pages → Source` 选择 `GitHub Actions`；推送到 `main` 后，工作流会自动构建并发布页面。
 
+当前已发布：
+
+- GitHub 源码仓库：<https://github.com/zx20170910/game-shop-paypal>
+- GitHub Pages 前端演示：<https://zx20170910.github.io/game-shop-paypal/>
+
 GitHub Pages 的地址通常是：
 
 ```text
